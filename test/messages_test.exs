@@ -23,6 +23,12 @@ defmodule SphinxRtm.MessagesTest do
   @user_b %{"user" => %{"name" => "user_b", "id" => "DEF"}}
   @sphinx %{"user" => %{"name" => "sphinx", "id" => "SPX"}}
 
+  @reaction %{
+    type: "reaction_added",
+    reaction: "+1",
+    item: %{type: "message", channel: "XYZ", ts: "124.456"}
+  }
+
   @question_permalink %{"permalink" => "https://fake_question_http"}
   @question_thread_permalink %{
     "permalink" => "https://fake_question_http?thread_ts=fake_question_http"
@@ -158,6 +164,38 @@ defmodule SphinxRtm.MessagesTest do
         assert :no_reply = Messages.process(@answer)
 
         [] = Repo.all(Riddle)
+      end
+    end
+  end
+
+  describe "thumbsup reaction to a message" do
+    test "is counted when it is an answer for saved question" do
+      # Fake the answer data
+      answer_params = %{solver: "user_b", permalink: get_permalink(@answer_permalink)}
+
+      {:ok, riddle} = Riddles.create(@thread_riddle)
+      {:ok, answer} = Answers.create(answer_params, riddle)
+      answer = Answers.get(%{id: answer.id})
+
+      with_mock(Slack.Web.Chat,
+        get_permalink: fn
+          "XYZ", "124.456" -> @answer_permalink
+        end
+      ) do
+        assert {:ok, new_answer} = Messages.add_reaction(@reaction)
+        assert new_answer.upvote == answer.upvote + 1
+      end
+    end
+
+    test "is not counted when message is not saved" do
+      with_mock(Slack.Web.Chat,
+        get_permalink: fn
+          "XYZ", "124.456" -> @answer_permalink
+        end
+      ) do
+        {:ok, riddle} = Riddles.create(@thread_riddle)
+        assert [] == Answers.all(riddle)
+        assert :ok = Messages.add_reaction(@reaction)
       end
     end
   end

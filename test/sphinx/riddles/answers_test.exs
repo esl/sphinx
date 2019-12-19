@@ -2,7 +2,6 @@ defmodule Sphinx.AnswersTest do
   use Sphinx.Support.DataCase
 
   alias Sphinx.Answers
-  alias Sphinx.Answer.Answer
   alias Sphinx.Riddles
 
   @question_params %{
@@ -107,7 +106,7 @@ defmodule Sphinx.AnswersTest do
 
     test "does not update with wrong parameters" do
       {:ok, riddle} = Riddles.create(@question_params)
-      {:ok, answer} = Answers.create(@answer_params, riddle)
+      {:ok, _answer} = Answers.create(@answer_params, riddle)
 
       new_params = %{@answer_params | upvote: "three"}
 

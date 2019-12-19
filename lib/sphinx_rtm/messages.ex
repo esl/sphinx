@@ -51,6 +51,19 @@ defmodule SphinxRtm.Messages do
     end
   end
 
+  def add_reaction(message) do
+    permalink = permalink(message.item.channel, message.item.ts)
+
+    case Answers.get(%{permalink: permalink}) do
+      nil ->
+        :ok
+
+      answer ->
+        upvote = answer.upvote
+        Answers.update(%{permalink: permalink, upvote: upvote + 1})
+    end
+  end
+
   @spec save_question(map()) :: {:ok, Riddles.Riddle.t()} | {:error, Ecto.Changeset.t()}
   defp save_question(message) do
     %{}

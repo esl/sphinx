@@ -30,6 +30,12 @@ defmodule SphinxRtm do
     end
   end
 
+  def handle_event(message = %{type: "reaction_added", reaction: "+1"}, _slack, state) do
+    Logger.info("Thumbsup reaction received")
+    Messages.add_reaction(message)
+    {:ok, state}
+  end
+
   def handle_event(_, _, state), do: {:ok, state}
 
   def handle_info({:message, text, channel}, slack, state) do

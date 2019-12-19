@@ -1,5 +1,4 @@
 defmodule Sphinx.Answers.Answer do
-
   use Ecto.Schema
 
   import Ecto.Changeset
