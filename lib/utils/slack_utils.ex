@@ -41,6 +41,11 @@ defmodule Sphinx.SlackUtils do
     end
   end
 
+  @spec send_ephemeral_reply(String.t(), String.t(), String.t()) :: map()
+  def send_ephemeral_reply(channel, text, user) do
+    Chat.post_ephemeral(channel, text, user)
+  end
+
   defp build_response(matches, _text, channel) do
     blocks =
       Enum.filter(matches, &match?(%{"channel" => %{"id" => ^channel}}, &1))

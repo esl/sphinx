@@ -25,6 +25,10 @@ defmodule SphinxRtm do
         send_thread_reply(reply, message, slack)
         {:ok, state}
 
+      {:ephemeral, text} ->
+        SlackUtils.send_ephemeral_reply(message.channel, text, message.user)
+        {:ok, state}
+
       :no_reply ->
         {:ok, state}
     end

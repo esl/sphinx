@@ -105,7 +105,7 @@ defmodule SphinxRtm.MessagesTest do
         question = %{@question | text: "<@SPX> 5eb63bbbe01eeed093cb22bb8f5acdc3"}
         assert {:reply, response} = Messages.process(question)
 
-        assert "You asked for \"5eb63bbbe01eeed093cb22bb8f5acdc3\" but I have no answer! Invoke @sphinx [SAVE] [TEXT] to save the question for future use!" =~
+        assert "You asked for \"5eb63bbbe01eeed093cb22bb8f5acdc3\", you might find these helpful: \n " =~
                  response
       end
     end

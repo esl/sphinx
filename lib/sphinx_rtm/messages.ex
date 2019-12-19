@@ -29,8 +29,7 @@ defmodule SphinxRtm.Messages do
             |> Map.put(:text, content)
             |> save_question()
 
-            # It will change for {:reply, "You're question is saved"} by post_ephemeral
-            :no_reply
+            {:ephemeral, "You're question is saved"}
 
           {:search, content} ->
             content = if content == "", do: text, else: content
