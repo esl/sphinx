@@ -29,7 +29,7 @@ defmodule SphinxRtm.Messages do
             |> Map.put(:text, content)
             |> save_question()
 
-            {:ephemeral, "You're question is saved"}
+            {:ephemeral, "Your question is saved!"}
 
           {:search, content} ->
             content = if content == "", do: text, else: content
