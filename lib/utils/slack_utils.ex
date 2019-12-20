@@ -2,6 +2,7 @@ defmodule Sphinx.SlackUtils do
   use Slack
   alias Slack.Web.Chat
   alias Slack.Web.Users
+  alias Slack.Web.Reactions
   alias Sphinx.SlackArgs
 
   @user_token Application.get_env(:slack, :user_token)
@@ -34,8 +35,27 @@ defmodule Sphinx.SlackUtils do
   end
 
   defp build_response(matches, text, channel) do
-    blocks = Enum.filter(matches, &match?(%{"channel" => %{"id" => channel}, "text" => text}, &1))
+    blocks =
+      Enum.filter(matches, &match?(%{"channel" => %{"id" => channel}, "text" => text}, &1))
+      |> Enum.sort_by(&get_upvote_count(&1), &>=/2)
+
     build_text("", 1, blocks)
+  end
+
+  defp get_upvote_count(block) do
+    channel = get_in(block, ["channel", "id"])
+    message = Reactions.get(%{channel: channel, timestamp: block["ts"]})
+
+    case get_in(message, ["message", "reactions"]) do
+      nil ->
+        0
+
+      reactions ->
+        case Enum.find(reactions, fn map -> map["name"] == "+1" end) do
+          nil -> 0
+          upvote -> upvote["count"]
+        end
+    end
   end
 
   defp build_text(response, _, []), do: response

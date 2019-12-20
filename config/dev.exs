@@ -1,6 +1,9 @@
 use Mix.Config
 
-config :slack, api_token: System.get_env("OAUTH_ACCESS_TOKEN")
+config :slack,
+  api_token: System.get_env("OAUTH_ACCESS_TOKEN"),
+  user_token: System.get_env("USER_OAUTH_ACCESS_TOKEN"),
+  slack_url: "https://slack.com/api/"
 
 config :sphinx,
   owner_username: "sphinx",
