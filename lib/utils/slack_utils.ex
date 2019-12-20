@@ -1,5 +1,6 @@
 defmodule Sphinx.SlackUtils do
   use Slack
+  alias Slack.Web.Channels
   alias Slack.Web.Chat
   alias Slack.Web.Users
   alias Slack.Web.Reactions
@@ -7,6 +8,12 @@ defmodule Sphinx.SlackUtils do
 
   @user_token Application.get_env(:slack, :user_token)
   @slack_url Application.get_env(:slack, :slack_url)
+
+  @spec get_channel_name(String.t()) :: String.t()
+  def get_channel_name(channel_id) do
+    Channels.info(channel_id)
+    |> get_in(["channel", "name"])
+  end
 
   @spec get_permalink(String.t(), String.t()) :: String.t()
   def get_permalink(channel_id, ts) do
@@ -34,9 +41,14 @@ defmodule Sphinx.SlackUtils do
     end
   end
 
-  defp build_response(matches, text, channel) do
+  @spec send_ephemeral_reply(String.t(), String.t(), String.t()) :: map()
+  def send_ephemeral_reply(channel, text, user) do
+    Chat.post_ephemeral(channel, text, user)
+  end
+
+  defp build_response(matches, _text, channel) do
     blocks =
-      Enum.filter(matches, &match?(%{"channel" => %{"id" => channel}, "text" => text}, &1))
+      Enum.filter(matches, &match?(%{"channel" => %{"id" => ^channel}}, &1))
       |> Enum.sort_by(&get_upvote_count(&1), &>=/2)
 
     build_text("", 1, blocks)
@@ -58,6 +70,7 @@ defmodule Sphinx.SlackUtils do
     end
   end
 
+  defp build_text("", _, []), do: nil
   defp build_text(response, _, []), do: response
 
   defp build_text(response, count, [block | blocks]) do
