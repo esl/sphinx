@@ -54,4 +54,27 @@ defmodule Sphinx.Answers do
         |> Repo.update()
     end
   end
+
+  def get_most_upvote_answers([], best_answers), do: best_answers
+
+  def get_most_upvote_answers([riddle | t], best_answers) do
+    case all(riddle) do
+      [] ->
+        get_most_upvote_answers(t, best_answers)
+
+      all_answers ->
+        best_answer = get_most_upvote(all_answers, [])
+        get_most_upvote_answers(t, [best_answer | best_answers])
+    end
+  end
+
+  defp get_most_upvote([], answer), do: answer
+  defp get_most_upvote([answer | t], []), do: get_most_upvote(t, answer)
+
+  defp get_most_upvote([answer | t], best_answer) do
+    case answer.upvote > best_answer.upvote do
+      true -> get_most_upvote(t, answer)
+      _ -> get_most_upvote(t, best_answer)
+    end
+  end
 end

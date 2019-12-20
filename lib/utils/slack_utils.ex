@@ -6,6 +6,8 @@ defmodule Sphinx.SlackUtils do
   alias Slack.Web.Reactions
   alias Sphinx.SlackArgs
 
+  require Logger
+
   @user_token Application.get_env(:slack, :user_token)
   @slack_url Application.get_env(:slack, :slack_url)
 
@@ -36,8 +38,11 @@ defmodule Sphinx.SlackUtils do
     {:ok, %{"messages" => %{"matches" => list_of_matches}}} = Poison.decode(response.body)
 
     case list_of_matches do
-      [] -> nil
-      _ -> build_response(list_of_matches, text, channel)
+      [] ->
+        nil
+
+      _ ->
+        build_response(list_of_matches, text, channel)
     end
   end
 
@@ -47,10 +52,13 @@ defmodule Sphinx.SlackUtils do
   end
 
   defp build_response(matches, _text, channel) do
+    Logger.info("matches no: #{length(matches)}")
+
     blocks =
-      Enum.filter(matches, &match?(%{"channel" => %{"id" => ^channel}}, &1))
+      Enum.filter(matches, &match?(%{"channel" => %{"id" => ^channel}, "text" => text}, &1))
       |> Enum.sort_by(&get_upvote_count(&1), &>=/2)
 
+    Logger.info("blocks no: #{length(blocks)}")
     build_text("", 1, blocks)
   end
 
