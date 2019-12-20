@@ -52,13 +52,10 @@ defmodule Sphinx.SlackUtils do
   end
 
   defp build_response(matches, _text, channel) do
-    Logger.info("matches no: #{length(matches)}")
-
     blocks =
       Enum.filter(matches, &match?(%{"channel" => %{"id" => ^channel}, "text" => text}, &1))
       |> Enum.sort_by(&get_upvote_count(&1), &>=/2)
 
-    Logger.info("blocks no: #{length(blocks)}")
     build_text("", 1, blocks)
   end
 
