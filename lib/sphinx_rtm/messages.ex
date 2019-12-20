@@ -4,6 +4,14 @@ defmodule SphinxRtm.Messages do
   alias Sphinx.SlackUtils
   alias Sphinx.Answers
 
+  @help """
+  ```
+  @sphinx help Print Sphinx commands \n
+  @sphinx [TEXT] Starts a thread with SphinxBot \n
+  @sphinx [SAVE] [TEXT] It saves the link to the thread without title \n
+  ...
+  ```
+  """
   ## TODO: check if message is a question
   ## if yes then get the keywords and search for old questions
   ## else check if it is related to/ answering the recent question.
@@ -22,7 +30,7 @@ defmodule SphinxRtm.Messages do
 
         case Parser.check_content(text) do
           {:help, _} ->
-            {:reply, help()}
+            {:ephemeral, @help}
 
           {:save, content} ->
             message
@@ -36,7 +44,7 @@ defmodule SphinxRtm.Messages do
 
             case SlackUtils.search(content, message.channel) do
               nil ->
-                {:reply,
+                {:ephemeral,
                  "You asked for \"#{content}\" but I have no answer! Invoke @sphinx [SAVE] [TEXT] to save the question for future use!"}
 
               reply ->
@@ -95,16 +103,5 @@ defmodule SphinxRtm.Messages do
   defp get_thread_permalink(channel_id, ts) do
     permalink(channel_id, ts)
     |> String.replace(~r/[?](.)*/, "")
-  end
-
-  defp help do
-    """
-    ```
-    @sphinx help Print Sphinx commands \n
-    @sphinx [TEXT] Starts a thread with SphinxBot \n
-    @sphinx [SAVE] [TEXT] It saves the link to the thread without title \n
-    ...
-    ```
-    """
   end
 end

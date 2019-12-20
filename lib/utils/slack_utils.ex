@@ -70,6 +70,7 @@ defmodule Sphinx.SlackUtils do
     end
   end
 
+  defp build_text("", _, []), do: nil
   defp build_text(response, _, []), do: response
 
   defp build_text(response, count, [block | blocks]) do
