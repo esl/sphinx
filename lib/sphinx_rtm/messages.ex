@@ -3,7 +3,7 @@ defmodule SphinxRtm.Messages do
   alias Sphinx.Riddles
   alias Sphinx.SlackUtils
   alias Sphinx.Answers
-  import Ecto.Query, only: [from: 2]
+  import Ecto.Query
 
   @help """
   ```
@@ -52,7 +52,7 @@ defmodule SphinxRtm.Messages do
   end
 
   def search(content, message) do
-    case dummy_db_search(content) do
+    case db_search(content) do
       [] ->
         search_history(content, message)
 
@@ -98,8 +98,11 @@ defmodule SphinxRtm.Messages do
     end
   end
 
-  defp dummy_db_search(content) do
-    query = from(r in Riddles.Riddle, where: r.title == ^content)
+  defp db_search(content) do
+    query =
+      Riddles.Riddle
+      |> where([r], like(r.title, ^"%#{String.replace(content, "%", "\\%")}%"))
+
     Sphinx.Repo.all(query)
   end
 
