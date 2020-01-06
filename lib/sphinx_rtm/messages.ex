@@ -3,6 +3,7 @@ defmodule SphinxRtm.Messages do
   alias Sphinx.Riddles
   alias Sphinx.SlackUtils
   alias Sphinx.Answers
+  import Ecto.Query
 
   @help """
   ```
@@ -42,19 +43,45 @@ defmodule SphinxRtm.Messages do
           {:search, content} ->
             content = if content == "", do: text, else: content
 
-            case SlackUtils.search(content, message.channel) do
-              nil ->
-                {:ephemeral,
-                 "You asked for \"#{content}\" but I have no answer! Invoke @sphinx [SAVE] [TEXT] to save the question for future use!"}
-
-              reply ->
-                {:reply,
-                 "You asked for \"#{content}\", you might find these helpful: \n #{reply}"}
-            end
+            search(content, message)
         end
 
       false ->
         :no_reply
+    end
+  end
+
+  def search(content, message) do
+    case db_search(content) do
+      [] ->
+        search_history(content, message)
+
+      riddles ->
+        case get_most_upvote_answers(riddles) do
+          [] ->
+            case search_history(content, message) do
+              {:ephemeral, _} ->
+                {:reply,
+                 "Someone has asked the same on #{hd(riddles).permalink} but there is no answer so far"}
+
+              {:reply, reply} ->
+                {:reply, reply}
+            end
+
+          reply ->
+            {:reply, "You asked for \"#{content}\", you might find these helpful: \n #{reply}"}
+        end
+    end
+  end
+
+  def search_history(content, message) do
+    case SlackUtils.search(content, message.channel) do
+      nil ->
+        {:ephemeral,
+         "You asked for \"#{content}\" but I have no answer! Invoke @sphinx [SAVE] [TEXT] to save the question for future use!"}
+
+      reply ->
+        {:reply, "You asked for \"#{content}\", you might find these helpful: \n #{reply}"}
     end
   end
 
@@ -69,6 +96,14 @@ defmodule SphinxRtm.Messages do
         upvote = answer.upvote
         Answers.update(%{permalink: permalink, upvote: upvote + 1})
     end
+  end
+
+  defp db_search(content) do
+    query =
+      Riddles.Riddle
+      |> where([r], like(r.title, ^"%#{String.replace(content, "%", "\\%")}%"))
+
+    Sphinx.Repo.all(query)
   end
 
   @spec save_question(map()) :: {:ok, Riddles.Riddle.t()} | {:error, Ecto.Changeset.t()}
@@ -103,5 +138,12 @@ defmodule SphinxRtm.Messages do
   defp get_thread_permalink(channel_id, ts) do
     permalink(channel_id, ts)
     |> String.replace(~r/[?](.)*/, "")
+  end
+
+  defp get_most_upvote_answers(riddles) do
+    case Answers.get_most_upvote_answers(riddles, []) do
+      [] -> []
+      answers -> Parser.build_text("", 1, answers)
+    end
   end
 end

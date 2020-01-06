@@ -33,4 +33,12 @@ defmodule SphinxRtm.Messages.Parser do
       true -> {:search, text}
     end
   end
+
+  def build_text("", _, []), do: nil
+  def build_text(response, _, []), do: response
+
+  def build_text(response, count, [block | blocks]) do
+    conc = Integer.to_string(count) <> " ~> #{block.permalink} \n "
+    build_text(response <> conc, count + 1, blocks)
+  end
 end

@@ -7,7 +7,7 @@ defmodule Sphinx.SlackArgs do
       Map.get(attrs, :channel)
       |> SlackUtils.get_channel_name()
 
-    query = "in:##{channel_name} " <> Map.get(attrs, :query)
+    query = "in%3A%23#{channel_name} " <> Map.get(attrs, :query)
     count = Map.get(attrs, :count, nil)
     highlight = Map.get(attrs, :highlight, nil)
     page = Map.get(attrs, :page, nil)
